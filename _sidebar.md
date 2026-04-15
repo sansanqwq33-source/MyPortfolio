@@ -29,5 +29,5 @@
 * 剧情台本
   * [武侠冒险（节选）](scripts/wuxiastory.md)
 
-* 关卡原型与演示
-  * [实机交互视频](gameplay/demo.md)
+* 简易demo演示
+  * [实机视频](gameplay/demo.md)
