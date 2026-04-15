@@ -14,15 +14,15 @@
 * 塔罗牌异能世界观
   * [基本设定](arcana/background.md)
   * [角色设定]
-    *[贝赛尔](arcana/beisaier.md)
-    *[梅姆](arcana/meimu.md)
-    *[约德](arcana/yuede.md)
-    *[柯芙](arcana/kefu.md)
-    *[达莱特](arcana/dalaite.md)
+    * [贝赛尔](arcana/beisaier.md)
+    * [梅姆](arcana/meimu.md)
+    * [约德](arcana/yuede.md)
+    * [柯芙](arcana/kefu.md)
+    * [达莱特](arcana/dalaite.md)
 
 * 角色设计
-  *[辛檑](character/xinlei.md)
-  *[知虫朱](character/bug.md)
+  * [辛檑](character/xinlei.md)
+  * [知虫朱](character/bug.md)
 
 * 剧情台本
   * [武侠冒险（节选）](scripts/wuxiastory.md)
