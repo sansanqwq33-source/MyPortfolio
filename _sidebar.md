@@ -21,9 +21,8 @@
     *[达莱特](arcana/dalaite.md)
 
 * 角色设计
-  * [人物档案]
-    *[辛檑](character/xinlei.md)
-    *[知虫朱](character/bug.md)
+  *[辛檑](character/xinlei.md)
+  *[知虫朱](character/bug.md)
 
 * 剧情台本
   * [武侠冒险（节选）](scripts/wuxiastory.md)
