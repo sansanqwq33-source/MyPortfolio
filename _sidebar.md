@@ -1,4 +1,4 @@
-* [首页 / 个人简介](README.md)
+* [首页](README.md)
 
 * 美食魔物世界观
   * [基本设定](meishi/background.md)
