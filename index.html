@@ -61,36 +61,6 @@
       subMaxLevel: 2,        
       auto2top: true,        
       search: 'auto',        
-      
-      // 添加自定义插件逻辑 
-      plugins: [
-        function(hook, vm) {
-          hook.doneEach(function() {
-            const btn = document.getElementById('like-btn');
-            const countSpan = document.getElementById('like-count');
-            
-            if (btn && countSpan) {
-              const baseCount = 0; 
-              let currentCount = parseInt(localStorage.getItem('my_portfolio_likes')) || baseCount;
-              
-              countSpan.innerText = currentCount;
-
-              btn.onclick = function() {
-                currentCount++; 
-                countSpan.innerText = currentCount; 
-                localStorage.setItem('my_portfolio_likes', currentCount);
-                
-                const heart = btn.querySelector('.heart-icon');
-                heart.style.transform = 'scale(1.5)';
-                setTimeout(() => {
-                  heart.style.transform = 'scale(1)';
-                }, 200);
-              };
-            }
-          });
-        }
-      ]
-    }; // 
   </script>
   
   <script src="//cdn.jsdelivr.net/npm/docsify@4"></script>
