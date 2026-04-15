@@ -13,7 +13,42 @@
       border-radius: 8px;
       margin: 1rem 0;
     }
-  </style>
+    /* 点赞按钮的美化样式 */
+  .like-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 24px;
+    border-radius: 50px;
+    background: #f8f9fa;
+    border: 1px solid #ddd;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    cursor: pointer;
+    font-size: 18px;
+    color: #555;
+    transition: all 0.2s ease;
+    user-select: none; /* 防止双击时选中文字 */
+  }
+  
+  /* 鼠标悬浮和点击时的变色与缩放 */
+  .like-btn:hover { 
+    background: #ffebee; 
+    border-color: #ffcdd2; 
+    color: #e53935; 
+  }
+  .like-btn:active { 
+    transform: scale(0.95); 
+  }
+  
+  /* 爱心图标的 Q 弹动画 */
+  .heart-icon { 
+    display: inline-block;
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+  }
+  .like-btn:active .heart-icon { 
+    transform: scale(1.4); 
+  }
+</style>
 </head>
 <body>
   <div id="app">加载中...</div>
@@ -26,7 +61,42 @@
       auto2top: true,        // 切换页面后自动跳转到顶部
       search: 'auto',        // 开启全文搜索（对大量文本很有用）
     }
-  </script>
+   // 添加自定义插件逻辑
+    plugins: [
+      function(hook, vm) {
+        // 每次路由切换、页面渲染完成后执行
+        hook.doneEach(function() {
+          const btn = document.getElementById('like-btn');
+          const countSpan = document.getElementById('like-count');
+          
+          if (btn && countSpan) {
+            // 设置一个“初始阅读量”，显得人气很高，比如 1024
+            const baseCount = 1024; 
+            // 从当前浏览器的缓存中读取点击次数，如果没有就等于 baseCount
+            let currentCount = parseInt(localStorage.getItem('my_portfolio_likes')) || baseCount;
+            
+            // 初始化显示数字
+            countSpan.innerText = currentCount;
+
+            // 绑定点击事件
+            btn.onclick = function() {
+              currentCount++; // 数字加 1
+              countSpan.innerText = currentCount; // 更新页面显示
+              localStorage.setItem('my_portfolio_likes', currentCount); // 存入浏览器缓存
+              
+              // 额外加个点击时的小动画效果
+              const heart = btn.querySelector('.heart-icon');
+              heart.style.transform = 'scale(1.5)';
+              setTimeout(() => {
+                heart.style.transform = 'scale(1)';
+              }, 200);
+            };
+          }
+        });
+      }
+    ]
+  }
+</script>
   <script src="//cdn.jsdelivr.net/npm/docsify@4"></script>
   <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/search.min.js"></script>
   <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/zoom-image.min.js"></script>
