@@ -13,6 +13,8 @@
 
 * 塔罗牌异能世界观
   * [基本设定](arcana/background.md)
+  * [力量体系](arcana/power.md)
+  * [势力拆解](arcana/power2.md)
   * 角色设定
     * [贝赛尔](arcana/beisaier.md)
     * [梅姆](arcana/meimu.md)
