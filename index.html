@@ -78,7 +78,7 @@
               btn.onclick = function() {
                 currentCount++; 
                 countSpan.innerText = currentCount; 
-                localStorage.setItem('my_portfolio_likes', currentCount); 
+                localStorage.clear();
                 
                 const heart = btn.querySelector('.heart-icon');
                 heart.style.transform = 'scale(1.5)';
