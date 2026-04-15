@@ -26,7 +26,7 @@
   * [辛檑](character/xinlei.md)
   * [知虫朱](character/bug.md)
 
-* 剧情台本
+* 小说文本
   * [武侠冒险（节选）](scripts/wuxiastory.md)
 
 * 简易demo演示
