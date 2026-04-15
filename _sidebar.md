@@ -13,7 +13,7 @@
 
 * 塔罗牌异能世界观
   * [基本设定](arcana/background.md)
-  * [角色设定]
+  * 角色设定
     * [贝赛尔](arcana/beisaier.md)
     * [梅姆](arcana/meimu.md)
     * [约德](arcana/yuede.md)
