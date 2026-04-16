@@ -3,28 +3,14 @@
 * 简易demo演示
   * [实机视频](gameplay/demo.md)
 
-* 角色设计
-  * [辛檑](character/xinlei.md)
-  * [知虫朱](character/bug.md)
+* [角色设计](character/xinlei.md)
 
-* 塔罗牌异能世界观
-  * [基本设定](arcana/background.md)
-  * [力量体系](arcana/power.md)
-  * [势力拆解](arcana/power2.md)
-  * 角色设定
-    * [贝赛尔](arcana/beisaier.md)
-    * [梅姆](arcana/meimu.md)
-    * [约德](arcana/yuede.md)
-    * [柯芙](arcana/kefu.md)
-    * [达莱特](arcana/dalaite.md)
+* [塔罗牌异能世界观](arcana/background.md)
 
-* 美食魔物世界观
-  * [基本设定](meishi/background.md)
-  * [魔物设定概览](meishi/factions.md)
+* [美食魔物世界观](meishi/background.md)
   * [剧情台本（小说节选）](meishi/novel.md)
 
 * [末世异能世界观](moshi/background.md)
-
 
 * 小说文本
   * [武侠冒险（节选）](scripts/wuxiastory.md)
