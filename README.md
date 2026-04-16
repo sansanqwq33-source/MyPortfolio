@@ -45,10 +45,6 @@
   }
 </style>
 
-<div class="hero-header">
-  <h1 style="border: none; margin-bottom: 10px;">你好，我是 [你的名字]</h1>
-  <p style="color: #666; font-size: 1.1em;">Game Narrative & Content Designer</p>
-</div>
 
 <div class="nav-grid">
   
