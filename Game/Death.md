@@ -26,12 +26,12 @@
 
 3.碎片式叙事，将故事拆分至每名嫌疑人的询问以及与幽灵布拉斯·库巴斯的对话，从这些碎片信息中拼凑出嫌疑人与嫌疑人、死者与嫌疑人的关系。
 
-4.<details style="margin-top: 20px; background: #fafafa; border: 1px solid #ddd; padding: 15px; border-radius: 8px;">
-  <summary style="font-weight: bold; cursor: pointer; color: #42b983;">点击查看剧透内容</summary>
+<details style="margin-top: 20px; background: #fafafa; border: 1px solid #ddd; padding: 15px; border-radius: 8px;">
+  <summary style="font-weight: bold; cursor: pointer; color: #42b983;"> 点击查看剧透内容 </summary>
   
   <br>
 
-开放式结局：游戏并未给出明确的凶手，而是将所有人都作为可能的行凶对象。笔者与制作者的想法一致，认为布拉斯·库巴斯，也就是死者本人即为真凶。
+4.开放式结局：游戏并未给出明确的凶手，而是将所有人都作为可能的行凶对象。笔者与制作者的想法一致，认为布拉斯·库巴斯，也就是死者本人即为真凶。
 
 但就像制作者所说，答案并不重要。游戏传递的想法是：**死后一切皆为虚无**。因此，究竟是谁杀死了布拉斯·库巴斯，这是只有存在者才会在意的事，而作为游戏的叙事主角——死者布拉斯·库巴斯已经不在意这个答案了。
 
