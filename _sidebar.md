@@ -14,4 +14,7 @@
 
 * 小说文本
   * [武侠冒险（节选）](scripts/wuxiastory.md)
+
+* [游戏拆解案](Game/Death.md)
+    
 * [网页游戏](demo/TimeBook.md)
