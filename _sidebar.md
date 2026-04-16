@@ -23,11 +23,8 @@
   * [魔物设定概览](meishi/factions.md)
   * [剧情台本（小说节选）](meishi/novel.md)
 
-* 末世异能世界观
-  * [基本设定](moshi/background.md)
-  * [力量体系](moshi/factions.md)
-  * [势力划分](moshi/power.md)
-  * [势力拆解](moshi/power2.md)
+* 末世异能世界观(moshi/background.md)
+
 
 * 小说文本
   * [武侠冒险（节选）](scripts/wuxiastory.md)
