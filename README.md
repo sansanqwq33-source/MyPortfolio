@@ -78,7 +78,7 @@
     <div class="nav-title">小说与剧本文本</div>
   </a>
 
-    <a href="#/Game/Death" class="nav-card">
+  <a href="#/Game/Death" class="nav-card">
     <span class="nav-icon">💭</span>
     <div class="nav-title">游戏拆解案</div>
   </a>
