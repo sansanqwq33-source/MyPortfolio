@@ -23,7 +23,7 @@
   * [魔物设定概览](meishi/factions.md)
   * [剧情台本（小说节选）](meishi/novel.md)
 
-* 末世异能世界观(moshi/background.md)
+* [末世异能世界观](moshi/background.md)
 
 
 * 小说文本
