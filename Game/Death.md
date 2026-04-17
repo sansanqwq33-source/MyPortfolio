@@ -40,3 +40,18 @@
 5.人物关系
 
 <iframe src="./relation-graph.html?csv=./data.csv" width="100%" height="500" frameborder="0"></iframe>
+
+
+<details style="margin-top: 20px; background: #fafafa; border: 1px solid #ddd; padding: 15px; border-radius: 8px;">
+  <summary style="font-weight: bold; cursor: pointer; color: #42b983;"> 点击查看剧透内容 </summary>
+  
+  <br>
+
+  6.人物动机
+
+|角色 | 姓名 | 动机 | 说明 |
+| :--- | :--- | :--- | :--- |
+|![角色头像](/assets/images/布拉斯.png) | 布拉斯·库巴斯 | 死者 | 委托侦探调查死因 |
+
+
+  </details>
