@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>人物关系图</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #fafaf8;
+      --bg2: #f1efe8;
+      --bg3: #ffffff;
+      --text: #2c2c2a;
+      --text2: #5f5e5a;
+      --text3: #888780;
+      --border: rgba(44,44,42,0.12);
+      --border2: rgba(44,44,42,0.22);
+      --purple: #7f77dd;
+      --purple-light: #eeedfe;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #1a1a18; --bg2: #222220; --bg3: #2c2c2a;
+        --text: #e8e6dc; --text2: #b4b2a9; --text3: #888780;
+        --border: rgba(255,255,255,0.1); --border2: rgba(255,255,255,0.2);
+        --purple-light: #26215c;
+      }
+    }
+
+    html, body {
+      height: 100%;
+      font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow: hidden;
+    }
+
+    #app {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    /* 图例 */
+    #legend-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px 14px;
+      padding: 8px 16px;
+      border-bottom: 0.5px solid var(--border);
+      background: var(--bg);
+      flex-shrink: 0;
+      align-items: center;
+      min-height: 34px;
+    }
+    .legend-item {
+      display: flex; align-items: center; gap: 5px;
+      font-size: 11px; color: var(--text2);
+    }
+    .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+    /* 画布 */
+    #graph-wrap {
+      position: relative;
+      flex: 1;
+      overflow: hidden;
+      background: var(--bg3);
+    }
+    canvas { position: absolute; top: 0; left: 0; }
+
+    /* Tooltip */
+    #tooltip {
+      position: absolute;
+      background: var(--bg3);
+      border: 0.5px solid var(--border2);
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 12px;
+      color: var(--text);
+      pointer-events: none;
+      display: none;
+      z-index: 10;
+      max-width: 220px;
+      line-height: 1.75;
+      box-shadow: 0 2px 14px rgba(0,0,0,0.1);
+    }
+    #tooltip b { font-size: 13px; font-weight: 500; }
+
+    /* 底部提示 */
+    #hint-bar {
+      font-size: 11px;
+      color: var(--text3);
+      text-align: center;
+      padding: 5px;
+      flex-shrink: 0;
+      border-top: 0.5px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+  <div id="legend-bar"></div>
+  <div id="graph-wrap">
+    <canvas id="graph"></canvas>
+    <div id="tooltip"></div>
+  </div>
+  <div id="hint-bar">悬浮角色查看关系 · 点击固定高亮 · 再次点击取消 · 可拖动节点</div>
+</div>
+
+<script>
+/* ── 颜色表 ── */
+const COLORS = {
+  '朋友':'#1D9E75','仇人':'#D85A30','上司':'#7F77DD','夫妻':'#D4537E',
+  '恋爱':'#E05585','合作':'#378ADD','求助':'#BA7517','帮助':'#639922',
+  '亲属':'#C04878','雇佣':'#534AB7','养女':'#D4537E','邻居':'#888780',
+  '民与官':'#5F5E5A','默认':'#888780'
+};
+function relColor(r) { return COLORS[r] || COLORS['默认']; }
+
+/* ── 内置示例 ── */
+const SAMPLE = [
+  {from:'周莹',to:'赵白石',relation:'朋友'},{from:'周莹',to:'吴聘',relation:'上司'},
+  {from:'周莹',to:'沈老夫人',relation:'仇人'},{from:'吴聘',to:'赵白石',relation:'民与官'},
+  {from:'沈老夫人',to:'沈西海',relation:'亲属'},{from:'沈老夫人',to:'沈夫人',relation:'亲属'},
+  {from:'沈西海',to:'沈星移',relation:'亲属'},{from:'沈西海',to:'杜明礼',relation:'合作'},
+  {from:'沈星移',to:'周莹',relation:'恋爱'},{from:'沈星移',to:'沈月生',relation:'亲属'},
+  {from:'沈老夫人',to:'吴蔚文',relation:'仇人'},{from:'吴蔚文',to:'胡咏梅',relation:'求助'},
+  {from:'杜明礼',to:'沈星移',relation:'仇人'},{from:'杜明礼',to:'胡咏梅',relation:'求助'},
+  {from:'杜明礼',to:'吴遁',relation:'雇佣'},{from:'千红',to:'沈星移',relation:'恋爱'},
+  {from:'吴聘',to:'沈老夫人',relation:'仇人'},{from:'周莹',to:'吴蔚文',relation:'上司'},
+  {from:'沈老夫人',to:'吴聘',relation:'仇人'},{from:'周莹',to:'千红',relation:'上司'}
+];
+
+/* ── 状态 ── */
+let nodes = [], edges = [], nodeMap = {};
+let hoveredNode = null, pinnedNode = null;
+let dragNode = null, dragOffX = 0, dragOffY = 0;
+let canvas, ctx, W, H;
+let isDark = window.matchMedia('(prefers-color-scheme:dark)').matches;
+window.matchMedia('(prefers-color-scheme:dark)').addEventListener('change', e => { isDark = e.matches; draw(); });
+
+/* ── 构图 ── */
+function buildGraph(data) {
+  nodeMap = {};
+  const nameSet = new Set();
+  data.forEach(r => { if (r.from) nameSet.add(r.from); if (r.to) nameSet.add(r.to); });
+  const names = [...nameSet];
+
+  canvas = document.getElementById('graph');
+  ctx = canvas.getContext('2d');
+  const wrap = document.getElementById('graph-wrap');
+  W = wrap.offsetWidth;
+  H = wrap.offsetHeight;
+  canvas.width = W * devicePixelRatio;
+  canvas.height = H * devicePixelRatio;
+  canvas.style.width = W + 'px';
+  canvas.style.height = H + 'px';
+  ctx.scale(devicePixelRatio, devicePixelRatio);
+
+  const cx = W / 2, cy = H / 2;
+  const r = Math.min(W, H) * 0.33;
+  nodes = names.map((name, i) => {
+    const a = (i / names.length) * Math.PI * 2 - Math.PI / 2;
+    return { id: name, x: cx + r * Math.cos(a), y: cy + r * Math.sin(a), vx: 0, vy: 0, r: 26 };
+  });
+  nodes.forEach(n => nodeMap[n.id] = n);
+
+  edges = data
+    .filter(r => r.from && r.to && nodeMap[r.from] && nodeMap[r.to])
+    .map(r => ({ from: r.from, to: r.to, relation: r.relation || '默认', color: relColor(r.relation) }));
+
+  buildLegend(data);
+  runLayout();
+}
+
+function buildLegend(data) {
+  const types = [...new Set(data.map(r => r.relation).filter(Boolean))];
+  document.getElementById('legend-bar').innerHTML = types.map(t =>
+    `<div class="legend-item"><div class="legend-dot" style="background:${relColor(t)}"></div><span>${t}</span></div>`
+  ).join('');
+}
+
+/* ── 力导向布局 ── */
+function runLayout() {
+  let iter = 0;
+  function tick() {
+    if (iter++ > 240) { draw(); return; }
+    nodes.forEach(a => {
+      a.fx = 0; a.fy = 0;
+      nodes.forEach(b => {
+        if (a === b) return;
+        const dx = a.x - b.x, dy = a.y - b.y;
+        const d = Math.sqrt(dx * dx + dy * dy) || 1;
+        const f = 4200 / d / d;
+        a.fx += f * dx / d; a.fy += f * dy / d;
+      });
+    });
+    edges.forEach(e => {
+      const a = nodeMap[e.from], b = nodeMap[e.to]; if (!a || !b) return;
+      const dx = b.x - a.x, dy = b.y - a.y;
+      const d = Math.sqrt(dx * dx + dy * dy) || 1;
+      const f = (d - 110) * 0.045;
+      a.fx += dx / d * f; a.fy += dy / d * f;
+      b.fx -= dx / d * f; b.fy -= dy / d * f;
+    });
+    const cx = W / 2, cy = H / 2;
+    nodes.forEach(n => {
+      if (n === dragNode) return;
+      n.fx += (cx - n.x) * 0.012; n.fy += (cy - n.y) * 0.012;
+      n.vx = (n.vx + n.fx) * 0.68; n.vy = (n.vy + n.fy) * 0.68;
+      n.x = Math.max(36, Math.min(W - 36, n.x + n.vx));
+      n.y = Math.max(36, Math.min(H - 36, n.y + n.vy));
+    });
+    draw();
+    requestAnimationFrame(tick);
+  }
+  tick();
+}
+
+/* ── 绘制 ── */
+function getHighlighted(id) {
+  if (!id) return { nodes: new Set(), edges: new Set() };
+  const ns = new Set([id]), es = new Set();
+  edges.forEach((e, i) => { if (e.from === id || e.to === id) { ns.add(e.from); ns.add(e.to); es.add(i); } });
+  return { nodes: ns, edges: es };
+}
+
+function draw() {
+  if (!ctx) return;
+  ctx.clearRect(0, 0, W, H);
+  const active = pinnedNode || hoveredNode;
+  const { nodes: hlN, edges: hlE } = getHighlighted(active);
+
+  edges.forEach((e, i) => {
+    const a = nodeMap[e.from], b = nodeMap[e.to]; if (!a || !b) return;
+    const hi = !active || hlE.has(i);
+    ctx.save();
+    ctx.globalAlpha = hi ? 0.85 : 0.07;
+    ctx.strokeStyle = e.color;
+    ctx.lineWidth = hi ? 2 : 1;
+    const dx = b.x - a.x, dy = b.y - a.y, d = Math.sqrt(dx * dx + dy * dy) || 1;
+    const sx = a.x + dx / d * a.r, sy = a.y + dy / d * a.r;
+    const ex = b.x - dx / d * (b.r + 6), ey = b.y - dy / d * (b.r + 6);
+    ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(ex, ey); ctx.stroke();
+    const ang = Math.atan2(ey - sy, ex - sx);
+    ctx.fillStyle = e.color;
+    ctx.beginPath();
+    ctx.moveTo(ex, ey);
+    ctx.lineTo(ex - 9 * Math.cos(ang - 0.38), ey - 9 * Math.sin(ang - 0.38));
+    ctx.lineTo(ex - 9 * Math.cos(ang + 0.38), ey - 9 * Math.sin(ang + 0.38));
+    ctx.closePath(); ctx.fill();
+    if (hi && active) {
+      ctx.globalAlpha = 0.92;
+      ctx.font = '11px system-ui,sans-serif';
+      ctx.fillStyle = e.color;
+      ctx.textAlign = 'center';
+      ctx.fillText(e.relation, (sx + ex) / 2, (sy + ey) / 2 - 5);
+    }
+    ctx.restore();
+  });
+
+  nodes.forEach(n => {
+    const hi = !active || hlN.has(n.id);
+    const isActive = n.id === active;
+    ctx.save();
+    ctx.globalAlpha = hi ? 1 : 0.14;
+    ctx.beginPath(); ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+    ctx.fillStyle = isActive ? (isDark ? '#3C3489' : '#EEEDFE') : (isDark ? '#2c2c2a' : '#f1efe8');
+    ctx.fill();
+    ctx.strokeStyle = isActive ? '#7f77dd' : (isDark ? '#5f5e5a' : '#c4c2b8');
+    ctx.lineWidth = isActive ? 2 : 0.8;
+    ctx.stroke();
+    ctx.fillStyle = isDark ? '#e8e6dc' : '#2c2c2a';
+    ctx.font = `${isActive ? '500 ' : ''}13px system-ui,sans-serif`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(n.id, n.x, n.y);
+    ctx.restore();
+  });
+}
+
+/* ── 事件 ── */
+function getCanvasXY(e) {
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = W / rect.width;
+  return [(e.clientX - rect.left) * scaleX, (e.clientY - rect.top) * scaleX];
+}
+
+function getNodeAt(x, y) {
+  for (const n of nodes)
+    if (Math.hypot(n.x - x, n.y - y) < n.r + 6) return n;
+  return null;
+}
+
+function showTooltip(e, n) {
+  const rect = canvas.getBoundingClientRect();
+  const conns = edges.filter(e => e.from === n.id || e.to === n.id);
+  const lines = conns.map(c => {
+    const other = c.from === n.id ? c.to : c.from;
+    const arrow = c.from === n.id ? '→' : '←';
+    return `<span style="color:${c.color}">${arrow} ${other} · ${c.relation}</span>`;
+  });
+  const tip = document.getElementById('tooltip');
+  tip.innerHTML = `<b>${n.id}</b><br>${lines.join('<br>')}`;
+  tip.style.display = 'block';
+  tip.style.left = Math.min(e.clientX - rect.left + 14, rect.width - 230) + 'px';
+  tip.style.top = Math.max(e.clientY - rect.top - 10, 6) + 'px';
+}
+
+function initEvents() {
+  canvas = document.getElementById('graph');
+
+  canvas.addEventListener('mousemove', e => {
+    if (dragNode) {
+      const [x, y] = getCanvasXY(e);
+      dragNode.x = Math.max(36, Math.min(W - 36, x + dragOffX));
+      dragNode.y = Math.max(36, Math.min(H - 36, y + dragOffY));
+      dragNode.vx = 0; dragNode.vy = 0;
+      document.getElementById('tooltip').style.display = 'none';
+      draw(); return;
+    }
+    const [x, y] = getCanvasXY(e);
+    const n = getNodeAt(x, y);
+    hoveredNode = n ? n.id : null;
+    canvas.style.cursor = n ? 'grab' : 'default';
+    if (n && !pinnedNode) showTooltip(e, n);
+    else document.getElementById('tooltip').style.display = 'none';
+    draw();
+  });
+
+  canvas.addEventListener('mouseleave', () => {
+    if (!dragNode) { hoveredNode = null; document.getElementById('tooltip').style.display = 'none'; draw(); }
+  });
+
+  canvas.addEventListener('mousedown', e => {
+    const [x, y] = getCanvasXY(e);
+    const n = getNodeAt(x, y);
+    if (n) { dragNode = n; dragOffX = n.x - x; dragOffY = n.y - y; canvas.style.cursor = 'grabbing'; }
+  });
+
+  window.addEventListener('mouseup', e => {
+    if (dragNode) {
+      const [x, y] = getCanvasXY(e);
+      const dist = Math.hypot(dragNode.x - (x + dragOffX), dragNode.y - (y + dragOffY));
+      if (dist < 4) pinnedNode = (pinnedNode === dragNode.id) ? null : dragNode.id;
+      dragNode = null; canvas.style.cursor = 'default'; draw();
+    }
+  });
+
+  canvas.addEventListener('touchstart', e => {
+    e.preventDefault();
+    const t = e.touches[0], [x, y] = getCanvasXY(t);
+    const n = getNodeAt(x, y);
+    if (n) { dragNode = n; dragOffX = n.x - x; dragOffY = n.y - y; }
+  }, { passive: false });
+
+  canvas.addEventListener('touchmove', e => {
+    e.preventDefault();
+    if (!dragNode) return;
+    const t = e.touches[0], [x, y] = getCanvasXY(t);
+    dragNode.x = Math.max(36, Math.min(W - 36, x + dragOffX));
+    dragNode.y = Math.max(36, Math.min(H - 36, y + dragOffY));
+    dragNode.vx = 0; dragNode.vy = 0; draw();
+  }, { passive: false });
+
+  canvas.addEventListener('touchend', () => { dragNode = null; });
+}
+
+/* ── 数据解析 ── */
+function parseCSV(text) {
+  const lines = text.trim().split(/\r?\n/);
+  const header = lines[0].split(',').map(h => h.trim().replace(/^["']|["']$/g, ''));
+  const fi = header.findIndex(h => /from|来源|源/i.test(h));
+  const ti = header.findIndex(h => /^to$|目标|目的/i.test(h));
+  const ri = header.findIndex(h => /relation|关系|rel/i.test(h));
+  const f = fi >= 0 ? fi : 0, t = ti >= 0 ? ti : 1, r = ri >= 0 ? ri : 2;
+  return lines.slice(1)
+    .map(l => {
+      const cols = l.split(',').map(c => c.trim().replace(/^["']|["']$/g, ''));
+      return { from: cols[f], to: cols[t], relation: cols[r] || '默认' };
+    })
+    .filter(r => r.from && r.to);
+}
+
+function parseExcel(arrayBuffer) {
+  const wb = XLSX.read(arrayBuffer, { type: 'array' });
+  const ws = wb.Sheets[wb.SheetNames[0]];
+  const rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
+  return rows.map(r => {
+    const keys = Object.keys(r);
+    const fk = keys.find(k => /from|来源|源/i.test(k)) || keys[0];
+    const tk = keys.find(k => /^to$|目标/i.test(k)) || keys[1];
+    const rk = keys.find(k => /relation|关系|rel/i.test(k)) || keys[2];
+    return { from: String(r[fk] || ''), to: String(r[tk] || ''), relation: String(r[rk] || '默认') };
+  }).filter(r => r.from && r.to);
+}
+
+async function loadCSV(url) {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    buildGraph(parseCSV(await res.text()));
+  } catch (err) {
+    console.error('加载 CSV 失败:', err);
+    buildGraph(SAMPLE);
+  }
+}
+
+async function loadExcel(url) {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    buildGraph(parseExcel(await res.arrayBuffer()));
+  } catch (err) {
+    console.error('加载 Excel 失败:', err);
+    buildGraph(SAMPLE);
+  }
+}
+
+/* ── 启动
+   URL 参数：
+     ?csv=./data.csv      加载 CSV（相对或绝对路径）
+     ?xlsx=./data.xlsx    加载 Excel
+   无参数时显示内置示例
+── */
+window.addEventListener('DOMContentLoaded', () => {
+  initEvents();
+  const params = new URLSearchParams(location.search);
+  if (params.has('csv')) {
+    loadCSV(params.get('csv'));
+  } else if (params.has('xlsx')) {
+    loadExcel(params.get('xlsx'));
+  } else {
+    buildGraph(SAMPLE);
+  }
+});
+
+window.addEventListener('resize', () => {
+  if (!nodes.length) return;
+  const wrap = document.getElementById('graph-wrap');
+  W = wrap.offsetWidth; H = wrap.offsetHeight;
+  canvas.width = W * devicePixelRatio; canvas.height = H * devicePixelRatio;
+  canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+  ctx.scale(devicePixelRatio, devicePixelRatio);
+  draw();
+});
+</script>
+</body>
+</html>
