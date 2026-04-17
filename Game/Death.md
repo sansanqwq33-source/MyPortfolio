@@ -39,4 +39,4 @@
 
 5.人物关系
 
-<iframe src="./relation-graph.html?csv=./data.csv" width="100%" height="520" frameborder="0"></iframe>
+<iframe src="./relation-graph.html?csv=./data.csv" width="100%" height="500" frameborder="0"></iframe>
