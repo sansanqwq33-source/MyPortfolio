@@ -36,3 +36,7 @@
 但就像制作者所说，答案并不重要。游戏传递的想法是：**死后一切皆为虚无**。因此，究竟是谁杀死了布拉斯·库巴斯，这是只有存在者才会在意的事，而作为游戏的叙事主角——死者布拉斯·库巴斯已经不在意这个答案了。
 
   </details>
+
+5.人物关系
+
+<iframe src="./relation-graph.html?csv=./data.csv" width="100%" height="520" frameborder="0"></iframe>
